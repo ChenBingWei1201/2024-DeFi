@@ -1,0 +1,104 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Code Verification
+      uses: actions/checkout@v4
+    - name: Foundry Installation
+      uses: foundry-rs/foundry-toolchain@v1
+      with:
+        version: nightly
+    - name: Forge Installation
+      run: |
+        cd hw
+        forge install
+      id: test
+
+    ## Problem Template
+    # - name: Problem <id>
+    #   id: problem-<id>
+    #   uses: classroom-resources/autograding-command-grader@v1
+    #   with:
+    #     test-name: Problem <id>
+    #     command: cd hw && forge test --mt <foundry-test-name>
+    #     timeout: <time-limit>
+    #     max-score: <max-score>
+
+    
+    - name: BadLeaf
+      id: problem-1
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: BadLeaf
+        command: cd hw && forge test --mc BadLeafTest --mt testExploit
+        timeout: 10
+        max-score: 20
+
+    - name: BadProof
+      id: problem-2
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: BadProof
+        command: cd hw && forge test --mc BadProofTest --mt testExploit
+        timeout: 10
+        max-score: 15
+
+    - name: UUPS
+      id: problem-3
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: UUPS
+        command: cd hw && forge test --mc UUPSTest --mt testExploit
+        timeout: 10
+        max-score: 15
+
+    - name: Transparent
+      id: problem-4
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Transparent
+        command: cd hw && forge test --mc Transparent --mt testExploit
+        timeout: 10
+        max-score: 15
+
+    - name: GPU
+      id: problem-5
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: GPU
+        command: cd hw && forge test --mc GPUTest --mt testExploit
+        timeout: 10
+        max-score: 15
+  
+    - name: Multisig
+      id: problem-6
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Multisig
+        command: cd hw && forge test --mc MultisigTest --mt testExploit
+        timeout: 10
+        max-score: 20
+    
+    ## Modify Autograding Reporter
+    ## If new problems are added, remember to add new grading actions below
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        PROBLEM-1_RESULTS: "${{steps.problem-1.outputs.result}}"
+        PROBLEM-2_RESULTS: "${{steps.problem-2.outputs.result}}"
+        PROBLEM-3_RESULTS: "${{steps.problem-3.outputs.result}}"
+        PROBLEM-4_RESULTS: "${{steps.problem-4.outputs.result}}"
+        PROBLEM-5_RESULTS: "${{steps.problem-5.outputs.result}}"
+        PROBLEM-6_RESULTS: "${{steps.problem-6.outputs.result}}"
+      with:
+        runners: problem-1, problem-2, problem-3, problem-4, problem-5, problem-6
+

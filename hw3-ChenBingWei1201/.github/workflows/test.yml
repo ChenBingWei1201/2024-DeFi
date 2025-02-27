@@ -1,0 +1,85 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Code Verification
+      uses: actions/checkout@v4
+    - name: Foundry Installation
+      uses: foundry-rs/foundry-toolchain@v1
+      with:
+        version: nightly
+    - name: Forge Installation
+      run: |
+        cd hw
+        forge install
+      id: test
+    
+    ## Modify Problem 1 Configuration
+    - name: Untrusted Oracle
+      id: problem-1
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Untrusted Oracle
+        command: cd hw && forge test --mc TrustedOracleTest --mt testExploit
+        timeout: 10
+        max-score: 10
+
+    ## Modify Problem 2 Configuration
+    - name: Rich NFT
+      id: problem-2
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Rich NFT
+        command: cd hw && forge test --mc RichNFTTest --mt testExploit
+        timeout: 10
+        max-score: 15
+
+    ## Modify Problem 3 Configuration
+    - name: MultiPair
+      id: problem-3
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: MultiPair
+        command: cd hw && forge test --mc MultiPairTest --mt testExploit
+        timeout: 10
+        max-score: 20
+
+    - name: Sasha
+      id: problem-4
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Sasha
+        command: cd hw && forge test --mc SashaTest --mt testExploit
+        timeout: 10
+        max-score: 25
+    
+    - name: SashaV2
+      id: problem-5
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: SashaV2
+        command: cd hw && forge test --mc SashaV2Test --mt testExploit
+        timeout: 10
+        max-score: 30
+
+    ## Modify Autograding Reporter
+    ## If new problems are added, remember to add new grading actions below
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        PROBLEM-1_RESULTS: "${{steps.problem-1.outputs.result}}"
+        PROBLEM-2_RESULTS: "${{steps.problem-2.outputs.result}}"
+        PROBLEM-3_RESULTS: "${{steps.problem-3.outputs.result}}"
+        PROBLEM-4_RESULTS: "${{steps.problem-4.outputs.result}}"
+        PROBLEM-5_RESULTS: "${{steps.problem-5.outputs.result}}"
+      with:
+        runners: problem-1, problem-2, problem-3, problem-4, problem-5
